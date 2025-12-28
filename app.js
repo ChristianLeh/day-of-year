@@ -8,10 +8,10 @@ function getDayOfYear(date) {
   const today = new Date();
   
   document.getElementById("date").textContent =
-    "Heute ist: " + today.toLocaleDateString("de-DE");
+    today.toLocaleDateString("de-DE");
   
-  document.getElementById("day-of-year").textContent =
-    "Tag des Jahres: " + getDayOfYear(today);
+  document.getElementById("confirmBtn").textContent =
+    getDayOfYear(today);
   
   document.getElementById("confirmBtn").addEventListener("click", () => {
     document.getElementById("status").textContent =
