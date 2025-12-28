@@ -1,6 +1,6 @@
 {
-    "name": "Day Counter",
-    "short_name": "DayCounter",
+    "name": "Day of Year",
+    "short_name": "DayOfYear",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
