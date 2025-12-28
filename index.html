@@ -14,16 +14,30 @@
 </head>
 <body>
   <main class="container">
-    <div class="heading">
+
+    <nav class="nav">
+      <button class="tab active" data-view="main">Heute</button>
+      <button class="tab" data-view="stats">Statistik</button>
+    </nav>
+
+    <!-- Hauptansicht -->
+    <section id="mainView">
+      <div class="heading">
         <img class="doy-icon" src="./icons/doy-icon-72.png" alt="DoY icon">
         <h1>Day of Year</h1>
-    </div>
-    
-    <button id="confirmBtn"></button>
+      </div>
 
-    <p id="date"></p>
+      <button id="confirmBtn"></button>
 
-    <p id="status"></p>
+      <p id="date"></p>
+      <p id="status"></p>
+    </section>
+
+    <!-- Statistikansicht -->
+    <section id="statsView" hidden>
+      <div id="yearGrid"></div>
+    </section>
+
   </main>
 
   <script src="app.js"></script>

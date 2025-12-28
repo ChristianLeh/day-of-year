@@ -1,45 +1,132 @@
 body {
-    font-family: system-ui, sans-serif;
-    background: #f5f5f5;
-    margin: 0;
-  }
-  
-  .container {
-    max-width: 400px;
-    margin: 2rem auto;
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
+  font-family: system-ui, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+}
 
-  .heading {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-  }
+.container {
+  max-width: 400px;
+  margin: 2rem auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
 
-  .doy-icon {
-    height: 72px;
-    width: 72px;
-    margin-right: 0.25rem;
-  }
-  
-  button {
-    padding: 0.7rem 1.2rem;
-    margin-top: 0.5rem;
-    font-size: 1.5rem;
-    font-weight: bold;
-    width: 50%;
-    border: none;
-    border-radius: 8px;
-    background: #3694E9;
-    color: white;
-    cursor: pointer;
-  }
-  
-  button:active {
-    transform: scale(0.98);
-  }
-  
+/* ---------- Moderne Tab-Navigation ---------- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  background: #eaf2fd;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+
+.tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.6rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #3694E9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tab.active {
+  background: #3694E9;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.tab:active {
+  transform: scale(0.98);
+}
+
+
+/* ---------- Heading ---------- */
+
+.heading {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.doy-icon {
+  height: 72px;
+  width: 72px;
+  margin-right: 0.25rem;
+}
+
+/* ---------- Hauptbutton ---------- */
+
+#confirmBtn {
+  padding: 0.7rem 1.2rem;
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  width: 50%;
+  border: none;
+  border-radius: 8px;
+  background: #3694E9;
+  color: white;
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  background: #9ec6f2;
+  cursor: default;
+}
+
+/* ---------- Statistik ---------- */
+
+.month {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.month h3 {
+  margin: 0.5rem 0;
+  text-transform: capitalize;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.day {
+  width: 28px;
+  height: 28px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: #eee;
+}
+
+.day.ok {
+  background: #4caf50;
+  color: white;
+}
+
+.day.fail {
+  background: #e53935;
+  color: white;
+}
