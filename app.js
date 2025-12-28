@@ -15,6 +15,6 @@ function getDayOfYear(date) {
   
   document.getElementById("confirmBtn").addEventListener("click", () => {
     document.getElementById("status").textContent =
-      "✅ Bestätigt am " + today.toLocaleTimeString("de-DE");
+      "✅ Bestätigt um " + today.toLocaleTimeString("de-DE");
   });
   
