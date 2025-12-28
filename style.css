@@ -52,6 +52,9 @@ body {
   transform: scale(0.98);
 }
 
+#mainView, #statsView {
+  transition: opacity 0.5s ease;
+}
 
 /* ---------- Heading ---------- */
 
@@ -87,9 +90,10 @@ button:active {
   transform: scale(0.98);
 }
 
-button:disabled {
-  background: #9ec6f2;
-  cursor: default;
+#confirmBtn.disabled-btn {
+  background: #a0c4f0;       /* Hellblau, Hauptfarbe abgeschwächt */
+  color: #eee;
+  cursor: not-allowed;
 }
 
 /* ---------- Statistik ---------- */

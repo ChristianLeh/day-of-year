@@ -8,6 +8,8 @@ const FILES_TO_CACHE = [
   "./app.js",
   "./manifest.json",
   "./icons/doy-icon-72.png",
+  "./icons/doy-icon-96.png",
+  "./icons/doy-icon-144.png",
   "./icons/doy-icon-192.png",
   "./icons/doy-icon-512.png"
 ];

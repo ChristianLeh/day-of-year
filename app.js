@@ -34,25 +34,22 @@ document.getElementById("confirmBtn").textContent =
 
 /* ------------------ Status-Logik ------------------ */
 
-function isTodayConfirmed() {
-  const data = loadData();
-  return Boolean(data[todayKey]);
-}
-
 function updateConfirmButtonState() {
   const btn = document.getElementById("confirmBtn");
+  const status = document.getElementById("status");
+  const data = loadData(); // Lade gespeicherte Bestätigungen
 
-  btn.textContent = getDayOfYear(today);
-
-  if (isTodayConfirmed()) {
-    btn.disabled = true;
-    document.getElementById("status").textContent =
-      "✅ Heute bereits bestätigt";
+  if (data[todayKey]) {
+    btn.disabled = true;                   // Button deaktivieren
+    btn.classList.add("disabled-btn");     // optionales CSS-Feedback
+    status.textContent = "✅ Heute bereits bestätigt";
   } else {
-    btn.disabled = false;
-    document.getElementById("status").textContent = "";
+    btn.disabled = false;                  // Button aktivieren
+    btn.classList.remove("disabled-btn");  // optionales CSS-Feedback entfernen
+    status.textContent = "";
   }
 }
+
 
 /* ------------------ Button ------------------ */
 
