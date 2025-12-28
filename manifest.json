@@ -7,12 +7,27 @@
     "theme_color": "#3694E9",
     "icons": [
       {
-        "src": "icons/doy-icon-192.png",
+        "src": "./icons/doy-icon-72.png",
+        "sizes": "72x72",
+        "type": "image/png"
+      },
+      {
+        "src": "./icons/doy-icon-96.png",
+        "sizes": "96x96",
+        "type": "image/png"
+      },
+      {
+        "src": "./icons/doy-icon-144.png",
+        "sizes": "144x144",
+        "type": "image/png"
+      },
+      {
+        "src": "./icons/doy-icon-192.png",
         "sizes": "192x192",
         "type": "image/png"
       },
       {
-        "src": "icons/doy-icon-512.png",
+        "src": "./icons/doy-icon-512.png",
         "sizes": "512x512",
         "type": "image/png"
       }

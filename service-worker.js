@@ -1,5 +1,5 @@
 // Versionieren für Updates
-const CACHE_NAME = "daycounter-v0.0.1";
+const CACHE_NAME = "daycounter-v0.0.2";
 
 const FILES_TO_CACHE = [
   "./",
@@ -7,7 +7,9 @@ const FILES_TO_CACHE = [
   "./style.css",
   "./app.js",
   "./manifest.json",
-  "./icons/doy-icon-72.png"
+  "./icons/doy-icon-72.png",
+  "./icons/doy-icon-192.png",
+  "./icons/doy-icon-512.png"
 ];
 
 /* ------------------ Install ------------------ */

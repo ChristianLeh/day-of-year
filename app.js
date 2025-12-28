@@ -1,4 +1,4 @@
-const STORAGE_KEY = "dayConfirmations";
+const STORAGE_KEY = "DayOfYearConfirmations";
 
 /* ------------------ Hilfsfunktionen ------------------ */
 
