@@ -176,3 +176,30 @@ document.addEventListener("touchend", (e) => {
 /* ------------------ Start ------------------ */
 
 updateConfirmButtonState();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // Neue Version verfügbar
+            document.getElementById("updateBanner").hidden = false;
+          }
+        });
+      });
+    });
+}
+
+// Reload-Button
+document.getElementById("reloadBtn").addEventListener("click", () => {
+  const banner = document.getElementById("updateBanner");
+  banner.hidden = true;
+
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ action: 'skipWaiting' });
+  }
+
+  window.location.reload();
+});
