@@ -1,5 +1,7 @@
 const STORAGE_KEY = "DayOfYearConfirmations";
 
+let activeYear = new Date().getFullYear();
+
 /* ------------------ Hilfsfunktionen ------------------ */
 
 function getDayOfYear(date) {
@@ -25,6 +27,7 @@ function dateKey(date) {
 
 const today = new Date();
 const todayKey = dateKey(today);
+const currentYear = today.getFullYear();
 
 document.getElementById("date").textContent =
   today.toLocaleDateString("de-DE");
@@ -34,22 +37,25 @@ document.getElementById("confirmBtn").textContent =
 
 /* ------------------ Status-Logik ------------------ */
 
+function isTodayConfirmed() {
+  const data = loadData();
+  return Boolean(data[currentYear]?.days?.[todayKey]);
+}
+
 function updateConfirmButtonState() {
   const btn = document.getElementById("confirmBtn");
   const status = document.getElementById("status");
-  const data = loadData(); // Lade gespeicherte Bestätigungen
 
-  if (data[todayKey]) {
-    btn.disabled = true;                   // Button deaktivieren
-    btn.classList.add("disabled-btn");     // optionales CSS-Feedback
-    status.textContent = "✅ Heute bereits bestätigt";
+  if (isTodayConfirmed()) {
+    btn.disabled = true;
+    btn.classList.add("disabled-btn");
+    status.textContent = "✅ Heute schon erledigt.";
   } else {
-    btn.disabled = false;                  // Button aktivieren
-    btn.classList.remove("disabled-btn");  // optionales CSS-Feedback entfernen
+    btn.disabled = false;
+    btn.classList.remove("disabled-btn");
     status.textContent = "";
   }
 }
-
 
 /* ------------------ Button ------------------ */
 
@@ -57,9 +63,18 @@ document.getElementById("confirmBtn").addEventListener("click", () => {
   if (isTodayConfirmed()) return;
 
   const data = loadData();
-  data[todayKey] = true;
-  saveData(data);
 
+  // Jahr initialisieren, falls noch nicht vorhanden
+  if (!data[currentYear]) {
+    data[currentYear] = {
+      startDate: todayKey,
+      days: {}
+    };
+  }
+
+  data[currentYear].days[todayKey] = true;
+
+  saveData(data);
   updateConfirmButtonState();
 });
 
@@ -74,7 +89,8 @@ function showView(view) {
   });
 
   if (view === "stats") {
-    renderYear();
+    populateYearSelect();
+    renderYear(currentYear);
   }
 }
 
@@ -84,16 +100,47 @@ document.querySelectorAll(".tab").forEach(btn => {
   });
 });
 
+/* ------------------ Jahresdropdown ------------------ */
+
+function populateYearSelect() {
+  const select = document.getElementById("yearSelect");
+  select.innerHTML = "";
+
+  const data = loadData();
+  let years = Object.keys(data).filter(y => /^\d{4}$/.test(y));
+
+  // Falls noch keine Daten existieren
+  if (years.length === 0) {
+    years = [String(activeYear)];
+  }
+
+  years
+    .sort((a, b) => b - a)
+    .forEach(year => {
+      const option = document.createElement("option");
+      option.value = year;
+      option.textContent = year;
+      option.selected = Number(year) === activeYear;
+      select.appendChild(option);
+    });
+}
 
 /* ------------------ Statistik ------------------ */
 
-function renderYear() {
+function renderYear(year) {
   const container = document.getElementById("yearGrid");
   container.innerHTML = "";
 
   const data = loadData();
+  const yearData = data[year];
+
+  if (!yearData) {
+    container.innerHTML = "<p>Noch keine Daten für dieses Jahr.</p>";
+    return;
+  }
+
+  const startDate = new Date(yearData.startDate);
   const now = new Date();
-  const year = now.getFullYear();
 
   for (let month = 0; month < 12; month++) {
     const monthDiv = document.createElement("div");
@@ -115,10 +162,10 @@ function renderYear() {
       const cell = document.createElement("div");
       cell.className = "day";
 
-      if (data[key]) {
+      if (yearData.days[key]) {
         cell.textContent = "✔";
         cell.classList.add("ok");
-      } else if (date < now) {
+      } else if (date < now && date >= startDate) {
         cell.textContent = "✖";
         cell.classList.add("fail");
       }
@@ -132,6 +179,11 @@ function renderYear() {
   }
 }
 
+document.getElementById("yearSelect").addEventListener("change", (e) => {
+  activeYear = Number(e.target.value);
+  renderYear(activeYear);
+});
+
 /* ------------------ Swipe-Gesten ------------------ */
 
 let touchStartX = 0;
@@ -139,7 +191,6 @@ let touchStartY = 0;
 
 document.addEventListener("touchstart", (e) => {
   if (e.touches.length !== 1) return;
-
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
 });
@@ -153,26 +204,18 @@ document.addEventListener("touchend", (e) => {
   const diffX = touchEndX - touchStartX;
   const diffY = touchEndY - touchStartY;
 
-  // Nur horizontale Swipes berücksichtigen
   if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 60) {
     const activeTab = document.querySelector(".tab.active")?.dataset.view;
 
-    if (diffX < 0 && activeTab === "main") {
-      showView("stats"); // Swipe links
-    }
-
-    if (diffX > 0 && activeTab === "stats") {
-      showView("main"); // Swipe rechts
-    }
+    if (diffX < 0 && activeTab === "main") showView("stats");
+    if (diffX > 0 && activeTab === "stats") showView("main");
   }
 
   touchStartX = 0;
   touchStartY = 0;
 });
 
-/* ------------------ Start ------------------ */
-
-updateConfirmButtonState();
+/* ------------------ Service Worker Update ------------------ */
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js')
@@ -181,7 +224,6 @@ if ('serviceWorker' in navigator) {
         const newWorker = reg.installing;
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // Neue Version verfügbar
             document.getElementById("updateBanner").hidden = false;
           }
         });
@@ -189,10 +231,8 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Reload-Button
 document.getElementById("reloadBtn").addEventListener("click", () => {
-  const banner = document.getElementById("updateBanner");
-  banner.hidden = true;
+  document.getElementById("updateBanner").hidden = true;
 
   if (navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({ action: 'skipWaiting' });
@@ -200,3 +240,54 @@ document.getElementById("reloadBtn").addEventListener("click", () => {
 
   window.location.reload();
 });
+
+/* ------------------ Migration ------------------ */
+
+function migrateLegacyData() {
+  const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  if (!raw || typeof raw !== "object") return;
+
+  let migrated = {};
+  let didMigrate = false;
+
+  Object.entries(raw).forEach(([key, value]) => {
+    // Altes Format: ISO-Datum
+    if (/^\d{4}-\d{2}-\d{2}$/.test(key) && value === true) {
+      const year = key.slice(0, 4);
+
+      if (!migrated[year]) {
+        migrated[year] = {
+          startDate: key,
+          days: {}
+        };
+      }
+
+      migrated[year].days[key] = true;
+
+      if (key < migrated[year].startDate) {
+        migrated[year].startDate = key;
+      }
+
+      didMigrate = true;
+    }
+
+    // Neues Format korrekt übernehmen
+    else if (
+      /^\d{4}$/.test(key) &&
+      typeof value === "object" &&
+      value.days
+    ) {
+      migrated[key] = value;
+    }
+  });
+
+  if (didMigrate) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+  }
+}
+
+
+/* ------------------ Start ------------------ */
+
+migrateLegacyData();
+updateConfirmButtonState();

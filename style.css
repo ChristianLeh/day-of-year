@@ -96,6 +96,27 @@ button:active {
   cursor: not-allowed;
 }
 
+/* ---------- Jahres-Dropdown ---------- */
+
+.year-selector {
+  position: sticky;
+  top: 56px; /* unter Sticky-Navigation */
+  background: white;
+  padding: 0.5rem 0;
+  z-index: 5;
+}
+
+#yearSelect {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 2px solid #3694E9;
+  background: white;
+  color: #3694E9;
+  font-weight: 600;
+}
+
 /* ---------- Statistik ---------- */
 
 .month {
