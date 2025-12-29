@@ -45,7 +45,6 @@ document.getElementById("confirmBtn").textContent =
 
 function isTodayConfirmed() {
   const data = loadData();
-  console.log(currentYear)
   return Boolean(data[currentYear]?.days?.[todayKey]);
 }
 
@@ -266,20 +265,26 @@ if ('serviceWorker' in navigator) {
         const newWorker = reg.installing;
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            document.getElementById("updateBanner").hidden = false;
+            const banner = document.getElementById("updateBanner");
+            if (banner) {
+              banner.hidden = false;
+            }
           }
         });
       });
     });
 }
 
-document.getElementById("reloadBtn").addEventListener("click", () => {
-  document.getElementById("updateBanner").hidden = true;
-  if (navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({ action: 'skipWaiting' });
-  }
-  window.location.reload();
-});
+const reloadBtn = document.getElementById("reloadBtn");
+if (reloadBtn) {
+  reloadBtn.addEventListener("click", () => {
+    document.getElementById("updateBanner")?.classList.add("hidden");
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ action: "skipWaiting" });
+    }
+    window.location.reload();
+  });
+}
 
 /* ------------------ Migration ------------------ */
 
