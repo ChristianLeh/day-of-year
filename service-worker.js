@@ -1,7 +1,6 @@
-// Versionieren für Updates
-const CACHE_NAME = "daycounter-v0.0.2";
+const CACHE_NAME = "DayOfYear-v0.0.4";
 
-const FILES_TO_CACHE = [
+const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./style.css",
@@ -16,11 +15,8 @@ const FILES_TO_CACHE = [
 
 /* ------------------ Install ------------------ */
 self.addEventListener("install", event => {
-  // Sofort aktivieren
-  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(FILES_TO_CACHE))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
 });
 
@@ -37,36 +33,57 @@ self.addEventListener("activate", event => {
       )
     )
   );
+
+  // Kontrolle sofort übernehmen
+  self.clients.claim();
 });
 
 /* ------------------ Fetch ------------------ */
 self.addEventListener("fetch", event => {
-  // Network-first für Navigation (HTML)
-  if (event.request.mode === "navigate") {
+  const request = event.request;
+
+  // HTML: Network first
+  if (request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then(response => {
-          // Update Cache
           const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(request))
     );
     return;
   }
 
-  // Offline-First für alle anderen Assets
+  // JS & CSS: Network first (!!!)
+  if (
+    request.destination === "script" ||
+    request.destination === "style"
+  ) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Sonst: Cache first
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
+    caches.match(request).then(response => {
+      return response || fetch(request);
     })
   );
 });
 
-/* ------------------ Skip Waiting (für Banner + Reload) ------------------ */
+/* ------------------ Skip Waiting ------------------ */
 self.addEventListener("message", event => {
-  if (event.data && event.data.action === "skipWaiting") {
+  if (event.data?.action === "skipWaiting") {
     self.skipWaiting();
   }
 });

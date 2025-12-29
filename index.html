@@ -37,7 +37,12 @@
     <section id="statsView" hidden>
       <div class="year-selector">
         <select id="yearSelect"></select>
-      </div>      
+      </div> 
+      
+      <div class="year-summary">
+        <span>Gesamt</span>
+        <strong id="yearTotal">0</strong>
+      </div>
 
       <div id="yearGrid"></div>
     </section>
@@ -45,11 +50,5 @@
   </main>
 
   <script src="app.js"></script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
-    }
-  </script>
 </body>
 </html>

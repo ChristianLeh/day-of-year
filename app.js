@@ -1,7 +1,5 @@
 const STORAGE_KEY = "DayOfYearConfirmations";
 
-let activeYear = new Date().getFullYear();
-
 /* ------------------ Hilfsfunktionen ------------------ */
 
 function getDayOfYear(date) {
@@ -20,14 +18,22 @@ function saveData(data) {
 }
 
 function dateKey(date) {
-  return date.toISOString().slice(0, 10);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getSelectedYear() {
+  const select = document.getElementById("yearSelect");
+  return select ? select.value : new Date().getFullYear().toString();
 }
 
 /* ------------------ Initialisierung ------------------ */
 
 const today = new Date();
 const todayKey = dateKey(today);
-const currentYear = today.getFullYear();
+const currentYear = today.getFullYear().toString();
 
 document.getElementById("date").textContent =
   today.toLocaleDateString("de-DE");
@@ -60,22 +66,28 @@ function updateConfirmButtonState() {
 /* ------------------ Button ------------------ */
 
 document.getElementById("confirmBtn").addEventListener("click", () => {
-  if (isTodayConfirmed()) return;
-
+  const todayYear = today.getFullYear().toString();
   const data = loadData();
 
-  // Jahr initialisieren, falls noch nicht vorhanden
-  if (!data[currentYear]) {
-    data[currentYear] = {
+  // Jahr initialisieren, falls nicht vorhanden
+  if (!data[todayYear]) {
+    data[todayYear] = {
       startDate: todayKey,
       days: {}
     };
   }
 
-  data[currentYear].days[todayKey] = true;
-
+  // Heute als bestätigt speichern
+  data[todayYear].days[todayKey] = true;
   saveData(data);
+
+  // Button-Status aktualisieren
   updateConfirmButtonState();
+
+  // Statistik & Gesamt aktualisieren für **aktuell ausgewähltes Jahr**
+  const selectedYear = getSelectedYear();
+  renderYear(selectedYear);
+  updateYearTotal(selectedYear);
 });
 
 /* ------------------ Views ------------------ */
@@ -90,7 +102,7 @@ function showView(view) {
 
   if (view === "stats") {
     populateYearSelect();
-    renderYear(currentYear);
+    renderYear(getSelectedYear());
   }
 }
 
@@ -104,30 +116,60 @@ document.querySelectorAll(".tab").forEach(btn => {
 
 function populateYearSelect() {
   const select = document.getElementById("yearSelect");
+  const data = loadData();
+
   select.innerHTML = "";
 
-  const data = loadData();
-  let years = Object.keys(data).filter(y => /^\d{4}$/.test(y));
+  let years = Object.keys(data)
+    .filter(y => /^\d{4}$/.test(y))
+    .sort((a, b) => b - a);
 
-  // Falls noch keine Daten existieren
-  if (years.length === 0) {
-    years = [String(activeYear)];
+  if (!years.includes(currentYear)) {
+    years.unshift(currentYear);
   }
 
-  years
-    .sort((a, b) => b - a)
-    .forEach(year => {
-      const option = document.createElement("option");
-      option.value = year;
-      option.textContent = year;
-      option.selected = Number(year) === activeYear;
-      select.appendChild(option);
-    });
+  years.forEach(year => {
+    const option = document.createElement("option");
+    option.value = year;
+    option.textContent = year;
+    select.appendChild(option);
+  });
+
+  if (!select.value) select.value = currentYear;
+}
+
+document.getElementById("yearSelect").addEventListener("change", () => {
+  const year = getSelectedYear();
+  renderYear(year);
+  updateYearTotal(year);
+});
+
+/* ------------------ Gesamt-Statistik ------------------ */
+
+function updateYearTotal(year) {
+  const totalEl = document.getElementById("yearTotal");
+  const data = loadData();
+
+  if (!data[year] || !data[year].days) {
+    totalEl.textContent = "0";
+    return;
+  }
+
+  let sum = 0;
+
+  Object.keys(data[year].days).forEach(dateStr => {
+    const date = new Date(dateStr);
+    sum += getDayOfYear(date);
+  });
+
+  totalEl.textContent = sum;
 }
 
 /* ------------------ Statistik ------------------ */
 
 function renderYear(year) {
+  updateYearTotal(year);
+
   const container = document.getElementById("yearGrid");
   container.innerHTML = "";
 
@@ -179,11 +221,6 @@ function renderYear(year) {
   }
 }
 
-document.getElementById("yearSelect").addEventListener("change", (e) => {
-  activeYear = Number(e.target.value);
-  renderYear(activeYear);
-});
-
 /* ------------------ Swipe-Gesten ------------------ */
 
 let touchStartX = 0;
@@ -206,7 +243,6 @@ document.addEventListener("touchend", (e) => {
 
   if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 60) {
     const activeTab = document.querySelector(".tab.active")?.dataset.view;
-
     if (diffX < 0 && activeTab === "main") showView("stats");
     if (diffX > 0 && activeTab === "stats") showView("main");
   }
@@ -233,11 +269,9 @@ if ('serviceWorker' in navigator) {
 
 document.getElementById("reloadBtn").addEventListener("click", () => {
   document.getElementById("updateBanner").hidden = true;
-
   if (navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({ action: 'skipWaiting' });
   }
-
   window.location.reload();
 });
 
@@ -286,8 +320,10 @@ function migrateLegacyData() {
   }
 }
 
-
 /* ------------------ Start ------------------ */
 
 migrateLegacyData();
+populateYearSelect();
 updateConfirmButtonState();
+renderYear(getSelectedYear());
+updateYearTotal(getSelectedYear());

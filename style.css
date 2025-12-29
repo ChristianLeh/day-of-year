@@ -119,6 +119,23 @@ button:active {
 
 /* ---------- Statistik ---------- */
 
+.year-summary {
+  margin: 0.75rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: #f0f6ff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+}
+
+.year-summary strong {
+  font-size: 1.2rem;
+  color: #3694E9;
+}
+
+
 .month {
   margin-bottom: 1.5rem;
   text-align: left;
