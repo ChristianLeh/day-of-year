@@ -104,6 +104,8 @@ function showView(view) {
   if (view === "stats") {
     populateYearSelect();
     renderYear(getSelectedYear());
+  } else {
+    updateConfirmButtonState();
   }
 }
 
@@ -211,6 +213,9 @@ function renderYear(year) {
       } else if (date < now && date >= startDate) {
         cell.textContent = "✖";
         cell.classList.add("fail");
+      } else {
+        cell.textContent = day;
+        cell.classList.add("day")
       }
 
       daysDiv.appendChild(cell);
@@ -323,16 +328,22 @@ function migrateLegacyData() {
 
 /* ------------------ Start ------------------ */
 
-document.addEventListener("DOMContentLoaded", () => {
+function initAppState() {
   migrateLegacyData();
-
   populateYearSelect();
 
-  // WICHTIG: Button-Status erst nach vollständigem Laden setzen
   updateConfirmButtonState();
 
   const year = getSelectedYear();
   renderYear(year);
   updateYearTotal(year);
-});
+}
 
+// 1. Klassischer Seiten-Load
+document.addEventListener("DOMContentLoaded", initAppState);
+
+// 2. Wichtig für PWAs & BFCache (DAS ist der fehlende Teil!)
+window.addEventListener("pageshow", (event) => {
+  // pageshow feuert auch bei Restore aus dem Cache
+  initAppState();
+});
