@@ -103,8 +103,6 @@ function showView(view) {
   if (view === "stats") {
     populateYearSelect();
     renderYear(getSelectedYear());
-  } else {
-    updateConfirmButtonState();
   }
 }
 
