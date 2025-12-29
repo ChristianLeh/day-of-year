@@ -45,6 +45,7 @@ document.getElementById("confirmBtn").textContent =
 
 function isTodayConfirmed() {
   const data = loadData();
+  console.log(currentYear)
   return Boolean(data[currentYear]?.days?.[todayKey]);
 }
 
@@ -322,8 +323,16 @@ function migrateLegacyData() {
 
 /* ------------------ Start ------------------ */
 
-migrateLegacyData();
-populateYearSelect();
-updateConfirmButtonState();
-renderYear(getSelectedYear());
-updateYearTotal(getSelectedYear());
+document.addEventListener("DOMContentLoaded", () => {
+  migrateLegacyData();
+
+  populateYearSelect();
+
+  // WICHTIG: Button-Status erst nach vollständigem Laden setzen
+  updateConfirmButtonState();
+
+  const year = getSelectedYear();
+  renderYear(year);
+  updateYearTotal(year);
+});
+
