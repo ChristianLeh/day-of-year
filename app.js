@@ -41,7 +41,7 @@ document.getElementById("date").textContent =
 document.getElementById("confirmBtn").textContent =
   getDayOfYear(today);
 
-/* ------------------ Status-Logik ------------------ */
+/* ------------------ Status ------------------ */
 
 function isTodayConfirmed() {
   const data = loadData();
@@ -66,25 +66,17 @@ function updateConfirmButtonState() {
 /* ------------------ Button ------------------ */
 
 document.getElementById("confirmBtn").addEventListener("click", () => {
-  const todayYear = today.getFullYear().toString();
   const data = loadData();
 
-  // Jahr initialisieren, falls nicht vorhanden
-  if (!data[todayYear]) {
-    data[todayYear] = {
-      startDate: todayKey,
-      days: {}
-    };
+  if (!data[currentYear]) {
+    data[currentYear] = { days: {} };
   }
 
-  // Heute als bestätigt speichern
-  data[todayYear].days[todayKey] = true;
+  data[currentYear].days[todayKey] = true;
   saveData(data);
 
-  // Button-Status aktualisieren
   updateConfirmButtonState();
 
-  // Statistik & Gesamt aktualisieren für **aktuell ausgewähltes Jahr**
   const selectedYear = getSelectedYear();
   renderYear(selectedYear);
   updateYearTotal(selectedYear);
@@ -144,7 +136,7 @@ document.getElementById("yearSelect").addEventListener("change", () => {
   updateYearTotal(year);
 });
 
-/* ------------------ Gesamt-Statistik ------------------ */
+/* ------------------ Gesamt ------------------ */
 
 function updateYearTotal(year) {
   const totalEl = document.getElementById("yearTotal");
@@ -174,14 +166,14 @@ function renderYear(year) {
   container.innerHTML = "";
 
   const data = loadData();
-  const yearData = data[year];
 
-  if (!yearData) {
-    container.innerHTML = "<p>Noch keine Daten für dieses Jahr.</p>";
-    return;
+  // Jahr automatisch erzeugen (wichtig!)
+  if (!data[year]) {
+    data[year] = { days: {} };
+    saveData(data);
   }
 
-  const startDate = new Date(yearData.startDate);
+  const yearData = data[year];
   const now = new Date();
 
   for (let month = 0; month < 12; month++) {
@@ -207,12 +199,30 @@ function renderYear(year) {
       if (yearData.days[key]) {
         cell.textContent = "✔";
         cell.classList.add("ok");
-      } else if (date < now && date >= startDate) {
+      }
+
+      else if (date < now) {
         cell.textContent = "✖";
         cell.classList.add("fail");
-      } else {
+        cell.style.cursor = "pointer";
+
+        cell.addEventListener("click", () => {
+          const data = loadData();
+
+          if (!data[year]) {
+            data[year] = { days: {} };
+          }
+
+          data[year].days[key] = true;
+          saveData(data);
+
+          renderYear(year);
+          updateYearTotal(year);
+        });
+      }
+
+      else {
         cell.textContent = day;
-        cell.classList.add("day")
       }
 
       daysDiv.appendChild(cell);
@@ -224,117 +234,10 @@ function renderYear(year) {
   }
 }
 
-/* ------------------ Swipe-Gesten ------------------ */
-
-let touchStartX = 0;
-let touchStartY = 0;
-
-document.addEventListener("touchstart", (e) => {
-  if (e.touches.length !== 1) return;
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-});
-
-document.addEventListener("touchend", (e) => {
-  if (!touchStartX || !touchStartY) return;
-
-  const touchEndX = e.changedTouches[0].clientX;
-  const touchEndY = e.changedTouches[0].clientY;
-
-  const diffX = touchEndX - touchStartX;
-  const diffY = touchEndY - touchStartY;
-
-  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 60) {
-    const activeTab = document.querySelector(".tab.active")?.dataset.view;
-    if (diffX < 0 && activeTab === "main") showView("stats");
-    if (diffX > 0 && activeTab === "stats") showView("main");
-  }
-
-  touchStartX = 0;
-  touchStartY = 0;
-});
-
-/* ------------------ Service Worker Update ------------------ */
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-    .then(reg => {
-      reg.addEventListener('updatefound', () => {
-        const newWorker = reg.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            const banner = document.getElementById("updateBanner");
-            if (banner) {
-              banner.hidden = false;
-            }
-          }
-        });
-      });
-    });
-}
-
-const reloadBtn = document.getElementById("reloadBtn");
-if (reloadBtn) {
-  reloadBtn.addEventListener("click", () => {
-    document.getElementById("updateBanner")?.classList.add("hidden");
-    if (navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({ action: "skipWaiting" });
-    }
-    window.location.reload();
-  });
-}
-
-/* ------------------ Migration ------------------ */
-
-function migrateLegacyData() {
-  const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
-  if (!raw || typeof raw !== "object") return;
-
-  let migrated = {};
-  let didMigrate = false;
-
-  Object.entries(raw).forEach(([key, value]) => {
-    // Altes Format: ISO-Datum
-    if (/^\d{4}-\d{2}-\d{2}$/.test(key) && value === true) {
-      const year = key.slice(0, 4);
-
-      if (!migrated[year]) {
-        migrated[year] = {
-          startDate: key,
-          days: {}
-        };
-      }
-
-      migrated[year].days[key] = true;
-
-      if (key < migrated[year].startDate) {
-        migrated[year].startDate = key;
-      }
-
-      didMigrate = true;
-    }
-
-    // Neues Format korrekt übernehmen
-    else if (
-      /^\d{4}$/.test(key) &&
-      typeof value === "object" &&
-      value.days
-    ) {
-      migrated[key] = value;
-    }
-  });
-
-  if (didMigrate) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-  }
-}
-
 /* ------------------ Start ------------------ */
 
 function initAppState() {
-  migrateLegacyData();
   populateYearSelect();
-
   updateConfirmButtonState();
 
   const year = getSelectedYear();
@@ -342,11 +245,8 @@ function initAppState() {
   updateYearTotal(year);
 }
 
-// 1. Klassischer Seiten-Load
 document.addEventListener("DOMContentLoaded", initAppState);
 
-// 2. Wichtig für PWAs & BFCache (DAS ist der fehlende Teil!)
-window.addEventListener("pageshow", (event) => {
-  // pageshow feuert auch bei Restore aus dem Cache
+window.addEventListener("pageshow", () => {
   initAppState();
 });
